@@ -17,7 +17,7 @@ let rawMapData = null;
 // BUT, if served via Python HTTP server, we can fetch it. Let's try fetching, else fallback to mock.
 async function loadArchitectureMap() {
     try {
-        const res = await fetch('../architecture_map.json');
+        const res = await fetch('../examples/architecture_map.json');
         if (!res.ok) throw new Error("Could not fetch file");
         rawMapData = await res.json();
     } catch (e) {
