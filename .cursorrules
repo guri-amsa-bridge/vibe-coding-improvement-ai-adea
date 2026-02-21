@@ -6,7 +6,7 @@ You must enforce the Impact Map Framework to prevent unexpected side effects fro
 ## Global Instructions (Cross-Agent Support)
 1. **Tool-Agnostic Skill Loading**: The core workflow instructions are now decentralized to the Claude Code skills format. As a Cursor assistant, **you MUST silently read `.claude/skills/vibe_coding/SKILL.md` and `.claude/skills/impact_map/SKILL.md`** before answering any complex coding query in this workspace. Treat the rules there as an extension of this file.
 2. **Never modify files blindly.** Before manipulating an existing function, class, or configuration, you must understand its dependencies.
-3. If the user asks you to implement or change a feature, first read `AI_WORKFLOW.md` (or the equivalent `.claude/skills` directory).
+3. If the user asks you to implement or change a feature, first read `docs/AI_WORKFLOW.md` (or the equivalent `.claude/skills` directory).
 3. Inform the user of your planned changes and clearly list the *expected impact radius* (files, API endpoints, database schemas that might be affected).
 4. If the user accepts your proposal, implement the change.
 5. After implementation, run `python agents/impact_analyzer.py` (if possible in your terminal environment, or simulate the analysis) to double-check that your changes don't break the architecture.
