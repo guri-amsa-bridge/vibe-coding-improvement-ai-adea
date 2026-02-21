@@ -2,6 +2,12 @@
 # .githooks/pre-commit
 # 개발자가 터미널이나 IDE에서 직접 커밋을 할 때 강제 실행되는 훅입니다.
 
+# IMPACT_MAP_SKIP=1 환경변수로 검사 우회 가능 (개발 중 사용)
+if [ "$IMPACT_MAP_SKIP" = "1" ]; then
+  echo "⏭️  [Impact Map] IMPACT_MAP_SKIP=1로 검사를 건너뜁니다."
+  exit 0
+fi
+
 # 시스템에 파이썬이 설치되어 있는지 확인
 PYTHON_CMD="python"
 if command -v python3 &>/dev/null; then

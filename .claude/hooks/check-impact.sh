@@ -6,6 +6,12 @@
 # (Bash Tool의 command 속성에 git commit 또는 git push 등이 포함되어 있는지 내부 파싱 시뮬레이션)
 # 단순 시연을 위해, 현재 변경된 파일(diff)이 있는 상황에서 무조건 검사를 수행하는 로직으로 구성합니다.
 
+# IMPACT_MAP_SKIP=1 환경변수로 검사 우회 가능 (개발 중 사용)
+if [ "$IMPACT_MAP_SKIP" = "1" ]; then
+  echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"Skipped by IMPACT_MAP_SKIP=1"}}'
+  exit 0
+fi
+
 PROJECT_DIR=${CLAUDE_PROJECT_DIR:-$(pwd)}
 TEMP_DIFF="$PROJECT_DIR/temp_hook_diff.patch"
 
