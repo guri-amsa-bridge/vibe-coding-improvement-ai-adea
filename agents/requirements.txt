@@ -1,0 +1,6 @@
+# Impact Map Framework Dependencies
+# 실제 구현 시 코드/AST 스캔을 위해 필요한 패키지들
+networkx==3.1
+PyGithub==2.1.1
+openai>=1.0.0
+# 만약 JS/TS 분석까지 한다면 tree-sitter 같은 도구가 추가될 수 있습니다.

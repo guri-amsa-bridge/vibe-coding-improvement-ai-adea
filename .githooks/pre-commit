@@ -1,0 +1,46 @@
+#!/bin/bash
+# .githooks/pre-commit
+# 개발자가 터미널이나 IDE에서 직접 커밋을 할 때 강제 실행되는 훅입니다.
+
+# 시스템에 파이썬이 설치되어 있는지 확인
+PYTHON_CMD="python"
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+elif ! command -v python &>/dev/null; then
+    echo "❌ 파이썬이 설치되어 있지 않습니다. Impact Map 스캐너를 실행할 수 없습니다."
+    exit 1
+fi
+
+echo "🔍 [Impact Map] 커밋 전 변경 영향도를 스캔합니다..."
+
+# 현재 스테이징된 변경사항 추출
+TEMP_DIFF="temp_staged.patch"
+git diff --cached > "$TEMP_DIFF"
+DIFF_SIZE=$(cat "$TEMP_DIFF" | wc -c)
+
+if [ "$DIFF_SIZE" -lt 5 ]; then
+  echo "✅ 의미있는 변경사항이 없습니다."
+  rm -f "$TEMP_DIFF"
+  exit 0
+fi
+
+# Impact Analyzer 실행
+REPORT_OUT=$($PYTHON_CMD agents/impact_analyzer.py --diff "$TEMP_DIFF" 2>/dev/null)
+rm -f "$TEMP_DIFF"
+
+# "High Risk" 문자열 감지
+if echo "$REPORT_OUT" | grep -qi "High"; then
+  echo ""
+  echo "🚨 [차단됨] 시스템 아키텍처에 중대한 파급을 미칠 변경사항이 발견되었습니다!"
+  echo "=========================================================="
+  echo "$REPORT_OUT"
+  echo "=========================================================="
+  echo "🛑 커밋이 취소되었습니다. High Risk 경고를 먼저 해결하세요."
+  echo "강제로 커밋하려면 'git commit --no-verify' 를 사용하세요. (CI에서 적발될 수 있습니다)"
+  
+  # 커밋 차단
+  exit 1
+else
+  echo "✅ [통과] 영향도 검증 완료. 커밋을 진행합니다."
+  exit 0
+fi

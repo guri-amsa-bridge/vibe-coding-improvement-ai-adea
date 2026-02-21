@@ -1,0 +1,45 @@
+name: Impact Map Analyzer
+
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  impact-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r agents/requirements.txt
+
+      - name: Generate Architecture Map
+        run: |
+          python agents/architecture_mapper.py --scan-all --output architecture_map.json
+          
+      - name: Get PR Diff
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.patch
+          
+      - name: Run Impact Analyzer
+        run: |
+          python agents/impact_analyzer.py --diff pr_diff.patch --map architecture_map.json > impact_report.md
+          
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: impact_report.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

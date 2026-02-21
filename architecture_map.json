@@ -1,0 +1,17 @@
+{
+    "src/auth.py": [
+        "src/user_service.py",
+        "api/routes.py"
+    ],
+    "src/database.py": [
+        "src/auth.py",
+        "src/user_service.py",
+        "src/item_service.py"
+    ],
+    "api/routes.py": [
+        "frontend/app.js"
+    ],
+    "src/user_service.py": [
+        "api/routes.py"
+    ]
+}
