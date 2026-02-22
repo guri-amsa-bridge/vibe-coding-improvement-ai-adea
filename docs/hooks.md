@@ -1,8 +1,47 @@
 # Hook 기반 자동 방어 시스템
 
-개발자가 별도 명령 없이도 커밋/배포 시점에 자동으로 영향도 검사가 수행됩니다.
+개발자가 별도 명령 없이도 코드 수정/커밋/배포 시점에 자동으로 영향도 검사가 수행됩니다.
 
-## Claude Code PreToolUse Hook
+## 0층 방어: Pre-Edit Hook (코드 수정 직전 차단)
+
+AI가 파일을 수정하려는 **바로 그 순간**, 수정 대상 파일의 의존성을 분석하여 영향 범위가 클 경우 수정을 차단하고 개발자에게 확인을 요청합니다.
+
+**설정 파일:** `.claude.json`
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-impact-pre-edit.sh"
+      }]
+    }]
+  }
+}
+```
+
+**동작 흐름:**
+1. Claude가 Edit 또는 Write 도구 호출 시도 (파일 수정/생성)
+2. `check-impact-pre-edit.sh`가 자동 실행
+3. stdin의 JSON에서 수정 대상 파일 경로 추출
+4. `architecture_mapper.py --target <파일>` 실행하여 의존성 분석
+5. 위험도 판정:
+   - 🔴 High Risk → `exit 2` (수정 차단) + 영향 범위를 Claude에게 전달
+   - 🟡 Medium Risk → 경고 메시지 전달 + 수정 허용
+   - 🟢 Low Risk → 무조건 통과
+
+**스크립트:** `.claude/hooks/check-impact-pre-edit.sh`
+
+**예시 (High Risk 차단 시 Claude가 사용자에게 전달하는 메시지):**
+```
+⚠️ src/auth.py를 수정하면 user_service.py, routes.py 등 3개 파일에 영향을 줄 수 있습니다.
+계속 수정하시겠습니까?
+```
+
+---
+
+## 2층 방어: Claude Code PreToolUse Hook (커밋 시점 차단)
 
 Claude Code가 Bash 도구로 `git commit`, `gh pr create` 등을 실행하려 할 때 시스템이 자동 인터셉트합니다.
 
