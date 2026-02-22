@@ -5,6 +5,10 @@ import re
 import os
 from collections import deque
 
+# 공유 유틸리티 함수를 architecture_mapper에서 가져옴
+sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+from architecture_mapper import build_reverse_graph
+
 
 def parse_diff_files(diff_path):
     """unified diff 파일에서 변경된 파일 경로 목록을 추출한다."""
@@ -13,7 +17,8 @@ def parse_diff_files(diff_path):
     try:
         with open(diff_path, 'r', encoding='utf-8') as f:
             content = f.read()
-    except (FileNotFoundError, UnicodeDecodeError):
+    except (FileNotFoundError, PermissionError, OSError, UnicodeDecodeError) as e:
+        print(f"⚠️  diff 파일 읽기 실패: {diff_path} ({type(e).__name__}: {e})", file=sys.stderr)
         return list(changed_files)
 
     # git diff 형식: diff --git a/path b/path
@@ -49,20 +54,14 @@ def load_architecture_map(map_path):
     try:
         with open(map_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except FileNotFoundError:
+        print(f"⚠️  아키텍처 맵 파일을 찾을 수 없습니다: {map_path}", file=sys.stderr)
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"⚠️  아키텍처 맵 JSON 파싱 오류: {map_path} ({e})", file=sys.stderr)
         return {}
 
 
-def build_reverse_graph(graph):
-    """정방향 그래프에서 역방향 그래프를 구축한다.
-    reverse[B] = [A] 의미: B를 import하는 파일이 A이다"""
-    reverse = {}
-    for src, deps in graph.items():
-        for dep in deps:
-            if dep not in reverse:
-                reverse[dep] = []
-            reverse[dep].append(src)
-    return reverse
 
 
 def compute_blast_radius(changed_files, graph):
@@ -118,11 +117,11 @@ def categorize_files(files):
         'other': [],
     }
 
-    api_patterns = ['api/', 'routes', 'endpoint', 'controller', 'handler']
-    service_patterns = ['service', 'usecase', 'logic', 'core/']
-    infra_patterns = ['database', 'db', 'migration', 'model', 'schema', 'infra/', 'deploy']
+    api_patterns = ['api/', 'routes/', 'endpoint', 'controller', 'handler']
+    service_patterns = ['service', 'usecase', 'logic', 'auth']
+    infra_patterns = ['database', 'db/', 'migration', 'models/', 'model.py', 'schema', 'infra/', 'deploy']
     frontend_patterns = ['frontend/', 'ui/', 'component', 'view', 'page', '.html', '.jsx', '.tsx']
-    config_patterns = ['config', '.env', 'setting', '.yml', '.yaml', '.toml']
+    config_patterns = ['config/', 'config.py', '.env', 'setting', '.yml', '.yaml', '.toml']
 
     for f in files:
         f_lower = f.lower()
