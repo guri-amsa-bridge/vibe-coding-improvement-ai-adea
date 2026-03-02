@@ -1,24 +1,24 @@
 {
-    "frontend/app.js": [
-        "frontend/api_client.js",
-        "frontend/renderer.js"
+    "examples/sample_project/frontend/app.js": [
+        "examples/sample_project/frontend/api_client.js",
+        "examples/sample_project/frontend/renderer.js"
     ],
-    "api/routes.py": [
-        "src/auth.py",
-        "src/item_service.py",
-        "src/user_service.py"
+    "examples/sample_project/api/routes.py": [
+        "examples/sample_project/src/auth.py",
+        "examples/sample_project/src/item_service.py",
+        "examples/sample_project/src/user_service.py"
     ],
-    "src/auth.py": [
-        "src/database.py"
+    "examples/sample_project/src/auth.py": [
+        "examples/sample_project/src/database.py"
     ],
-    "src/item_service.py": [
-        "src/database.py"
+    "examples/sample_project/src/item_service.py": [
+        "examples/sample_project/src/database.py"
     ],
-    "src/user_service.py": [
-        "src/auth.py",
-        "src/database.py"
+    "examples/sample_project/src/user_service.py": [
+        "examples/sample_project/src/auth.py",
+        "examples/sample_project/src/database.py"
     ],
-    "frontend/api_client.js": [],
-    "src/database.py": [],
-    "frontend/renderer.js": []
+    "examples/sample_project/frontend/api_client.js": [],
+    "examples/sample_project/src/database.py": [],
+    "examples/sample_project/frontend/renderer.js": []
 }
