@@ -26,17 +26,28 @@ class Database:
             logger.info(f"Database connected: {self.db_path} (pool_size={self.pool_size})")
         return self._conn
 
-    def execute(self, query, params=None, timeout=30):
+    def execute(self, query, params=None, timeout=30, max_retries=3):
         conn = self.connect()
-        cursor = conn.cursor()
         self._query_count += 1
         logger.debug(f"Executing query #{self._query_count} (timeout={timeout}s): {query[:50]}")
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        conn.commit()
-        return cursor
+        
+        last_error = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                cursor = conn.cursor()
+                if params:
+                    cursor.execute(query, params)
+                else:
+                    cursor.execute(query)
+                conn.commit()
+                return cursor
+            except sqlite3.OperationalError as e:
+                last_error = e
+                logger.warning(f"Query attempt {attempt}/{max_retries} failed: {e}")
+                if attempt < max_retries:
+                    import time
+                    time.sleep(0.1 * attempt)
+        raise last_error
 
     def fetch_one(self, query, params=None):
         cursor = self.execute(query, params)
